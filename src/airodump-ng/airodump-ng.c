@@ -133,10 +133,15 @@ static int * frequencies;
 
 static volatile int quitting = 0;
 static volatile time_t quitting_event_ts = 0;
+//***********************************************************************************************************jkn
 static FILE *jkn_file;
+static FILE *jkn_file_handshake;
+static FILE *jkn_file_show;
 #define JKN_NUMBER 20
-static int jkn_count = 0;
 static int jkn_timer = -1;
+static long jkn_count_frame = 0;// 抓取的总帧数
+int jkn_i;
+char jkn_str[100];
 
 static void dump_sort(void);
 static void dump_print(int ws_row, int ws_col, int if_num);
@@ -1222,6 +1227,24 @@ static int dump_add_packet(unsigned char * h80211,
 						   struct rx_info * ri,
 						   int cardnum)
 {
+	//***************************************************************************************jkn
+	jkn_count_frame++;
+	if(jkn_timer % (JKN_NUMBER/2) == 0){
+		while(1){
+			if ((jkn_file_show = fopen("show.txt", "w+")) == NULL){
+				printf("error open show.txt\n");
+				fclose(jkn_file_show);
+				continue;
+			}
+			break;
+		}	
+		fprintf(jkn_file_show,
+				"%ld",
+				jkn_count_frame);	
+		fflush(jkn_file_show);		
+		fclose(jkn_file_show);
+	}
+	
 	REQUIRE(h80211 != NULL);
 
 	int seq, msd, offset, clen, o;
@@ -2849,6 +2872,93 @@ skip_probe:
 						return (EXIT_FAILURE);
 					}
 				}
+
+
+				//******************************************************************************************jkn
+				// open file
+				while(1){
+					if ((jkn_file_handshake = fopen("handshake.txt", "w+")) == NULL){
+						printf("error open handshake.txt\n");
+						fclose(jkn_file_handshake);
+						continue;
+					}
+					break;
+				}
+
+				// ssid	
+				sprintf(jkn_str, "%s", ap_cur->essid);
+				for (jkn_i = 0; jkn_i < strlen(jkn_str); jkn_i++)
+				{
+					fprintf(jkn_file_handshake, "%02x", jkn_str[jkn_i]);
+				}
+				fprintf(jkn_file_handshake, "\n");
+				fflush(jkn_file_handshake);		
+
+				// ap mac
+				fprintf(jkn_file_handshake,
+						"%02x%02x%02x%02x%02x%02x\n",
+						ap_cur->bssid[0],
+						ap_cur->bssid[1],
+						ap_cur->bssid[2],
+						ap_cur->bssid[3],
+						ap_cur->bssid[4],
+						ap_cur->bssid[5]);	
+				fflush(jkn_file_handshake);	
+
+				// station mac
+				fprintf(jkn_file_handshake,
+						"%02x%02x%02x%02x%02x%02x\n",
+						st_cur->wpa.stmac[0],
+						st_cur->wpa.stmac[1],
+						st_cur->wpa.stmac[2],
+						st_cur->wpa.stmac[3],
+						st_cur->wpa.stmac[4],
+						st_cur->wpa.stmac[5]);	
+				fflush(jkn_file_handshake);		
+
+				// anonce
+				int jkn_i;
+				for (jkn_i = 0; jkn_i < 32; jkn_i++)
+				{
+					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.anonce[jkn_i]);
+				}
+				fprintf(jkn_file_handshake, "\n");
+				fflush(jkn_file_handshake);		
+
+				// snonce
+				
+				for (jkn_i = 0; jkn_i < 32; jkn_i++)
+				{
+					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.snonce[jkn_i]);
+				}
+				fprintf(jkn_file_handshake, "\n");
+				fflush(jkn_file_handshake);	
+				
+				// eapol 加密数据
+				for (jkn_i = 0; jkn_i < st_cur->wpa.eapol_size; jkn_i++)
+				{
+					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.eapol[jkn_i]);
+				}
+				fprintf(jkn_file_handshake, "\n");
+				fflush(jkn_file_handshake);	
+
+				// MIC
+				for (jkn_i = 0; jkn_i < 16; jkn_i++)
+				{
+					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.keymic[jkn_i]);
+				}
+				fprintf(jkn_file_handshake, "\n");
+				fflush(jkn_file_handshake);	
+							
+
+				// SSID 字符串形式，用于qt展示，不用与破解，只能放文件的最后一行
+				fprintf(jkn_file_handshake,
+							"%s\n",
+							ap_cur->essid);
+				fflush(jkn_file_handshake);
+
+				fclose(jkn_file_handshake);	
+
 			}
 		}
 	}
@@ -3407,7 +3517,8 @@ static int IsAp2BeSkipped(struct AP_info * ap_cur)
 	return (0);
 }
 
-#define CHECK_END_OF_SCREEN()                                                  //\
+#define CHECK_END_OF_SCREEN()                                                  
+	//\
 	// do                                                                         \
 	// {                                                                          \
 	// 	++nlines;                                                              \
