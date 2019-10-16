@@ -3407,16 +3407,16 @@ static int IsAp2BeSkipped(struct AP_info * ap_cur)
 	return (0);
 }
 
-#define CHECK_END_OF_SCREEN()                                                  \
-	do                                                                         \
-	{                                                                          \
-		++nlines;                                                              \
-		if (nlines >= (ws_row - 1))                                            \
-		{                                                                      \
-			erase_display(0);                                                  \
-			return;                                                            \
-		};                                                                     \
-	} while (0)
+#define CHECK_END_OF_SCREEN()                                                  //\
+	// do                                                                         \
+	// {                                                                          \
+	// 	++nlines;                                                              \
+	// 	if (nlines >= (ws_row - 1))                                            \
+	// 	{                                                                      \
+	// 		erase_display(0);                                                  \
+	// 		return;                                                            \
+	// 	};                                                                     \
+	// } while (0)
 
 static void dump_print(int ws_row, int ws_col, int if_num)
 {
@@ -4081,17 +4081,29 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 			ap_cur = ap_cur->prev;
 		}
-		if(jkn_timer % JKN_NUMBER == 0){
-			fclose(jkn_file);
-		}
 
-		/* print some information about each detected station */
 
 		erase_line(0);
 		move(CURSOR_DOWN, 1);
 		CHECK_END_OF_SCREEN();
 	}
 
+	if(jkn_timer % JKN_NUMBER == 0){
+		fclose(jkn_file);
+	}
+
+		/* print some information about each detected station */
+	//*********************************************************************jkn
+	if(jkn_timer % JKN_NUMBER == 0){
+		while(1){
+			if ((jkn_file = fopen("station.txt", "w+")) == NULL){
+				printf("error open station.txt\n");
+				fclose(jkn_file);
+				continue;
+			}
+			break;
+		}
+	}		
 	if (lopt.show_sta)
 	{
 		strcpy(strbuf,
@@ -4132,7 +4144,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 				continue;
 			}
 
-			//if (nlines >= (ws_row - 1)) return;
+			// if (nlines >= (ws_row - 1)) return;
 
 			st_cur = lopt.st_end;
 
@@ -4156,6 +4168,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 					continue;
 				}
 
+				//lopt.asso_client默认为0,用户可以输入参数时指定为1
 				if (!memcmp(ap_cur->bssid, BROADCAST, 6) && lopt.asso_client)
 				{
 					st_cur = st_cur->prev;
@@ -4164,22 +4177,46 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 				num_sta++;
 
-				if (lopt.start_print_sta > num_sta) continue;
+				// lopt.start_print_sta默认为1
+				if (lopt.start_print_sta > num_sta)  continue;
 
 				nlines++;
 
 				//if (nlines >= (ws_row - 1)) return;
 
-				if (!memcmp(ap_cur->bssid, BROADCAST, 6))
+				if (!memcmp(ap_cur->bssid, BROADCAST, 6)){
 					printf(" (not associated) ");
-				else
+					if(jkn_timer % JKN_NUMBER == 0 ){
+						fprintf(jkn_file,
+							" null  ");
+						fflush(jkn_file);
+					}
+					
+				}
+				else{
 					printf(" %02X:%02X:%02X:%02X:%02X:%02X",
-						   ap_cur->bssid[0],
-						   ap_cur->bssid[1],
-						   ap_cur->bssid[2],
-						   ap_cur->bssid[3],
-						   ap_cur->bssid[4],
-						   ap_cur->bssid[5]);
+							ap_cur->bssid[0],
+							ap_cur->bssid[1],
+							ap_cur->bssid[2],
+							ap_cur->bssid[3],
+							ap_cur->bssid[4],
+							ap_cur->bssid[5]);
+
+					if(jkn_timer % JKN_NUMBER == 0 ){
+						fprintf(jkn_file,
+							" %02X:%02X:%02X:%02X:%02X:%02X ",
+							ap_cur->bssid[0],
+							ap_cur->bssid[1],
+							ap_cur->bssid[2],
+							ap_cur->bssid[3],
+							ap_cur->bssid[4],
+							ap_cur->bssid[5]);
+						fflush(jkn_file);
+					}
+				}
+					
+				
+
 
 				printf("  %02X:%02X:%02X:%02X:%02X:%02X",
 					   st_cur->stmac[0],
@@ -4188,6 +4225,23 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 					   st_cur->stmac[3],
 					   st_cur->stmac[4],
 					   st_cur->stmac[5]);
+				if(jkn_timer % JKN_NUMBER == 0 ){
+					fprintf(jkn_file,
+						"  %02X:%02X:%02X:%02X:%02X:%02X  \n",
+						st_cur->stmac[0],
+						st_cur->stmac[1],
+						st_cur->stmac[2],
+						st_cur->stmac[3],
+						st_cur->stmac[4],
+						st_cur->stmac[5]);
+					fflush(jkn_file);
+				}
+
+
+
+				
+
+
 
 				printf("  %3d ", st_cur->power);
 				printf("  %2d", st_cur->rate_to / 1000000);
@@ -4226,11 +4280,12 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 						? abort()
 						: (void) 0;
 					strbuf[MAX(ws_col - 75, 0)] = '\0';
-					printf(" %s", strbuf);
+					printf(" %s", strbuf);					
 				}
 
 				erase_line(0);
 				putchar('\n');
+						
 
 				st_cur = st_cur->prev;
 			}
@@ -4244,6 +4299,13 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 			ap_cur = ap_cur->prev;
 		}
+
+
+
+	}
+
+	if(jkn_timer % JKN_NUMBER == 0){
+		fclose(jkn_file);
 	}
 
 	if (lopt.show_ack)
@@ -7278,7 +7340,7 @@ int main(int argc, char * argv[])
 
 			if (ioctl(0, TIOCGWINSZ, &(lopt.ws)) < 0)
 			{
-				lopt.ws.ws_row = 25;
+				lopt.ws.ws_row = 2500;
 				lopt.ws.ws_col = 80;
 			}
 
