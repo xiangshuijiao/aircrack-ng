@@ -133,6 +133,10 @@ static int * frequencies;
 
 static volatile int quitting = 0;
 static volatile time_t quitting_event_ts = 0;
+static FILE *jkn_file;
+#define JKN_NUMBER 20
+static int jkn_count = 0;
+static int jkn_timer = -1;
 
 static void dump_sort(void);
 static void dump_print(int ws_row, int ws_col, int if_num);
@@ -3438,7 +3442,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 	nlines = 2;
 
-	if (nlines >= ws_row) return;
+	//if (nlines >= ws_row) return;
 
 	if (lopt.do_sort_always)
 	{
@@ -3495,7 +3499,8 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 	}
 	else
 	{
-		snprintf(strbuf, sizeof(strbuf) - 1, " CH %2d", lopt.channel[0]);
+		// snprintf(strbuf, sizeof(strbuf) - 1, " CH %2d", lopt.channel[0]);
+		snprintf(strbuf, sizeof(strbuf) - 1, " CH %5d", jkn_timer);
 		for (i = 1; i < if_num; i++)
 		{
 			memset(buffer, '\0', sizeof(buffer));
@@ -3586,6 +3591,21 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 	CHECK_END_OF_SCREEN();
 
 	/* print some information about each detected AP */
+
+	//*********************************************************************jkn
+	jkn_timer++;
+	if(jkn_timer % JKN_NUMBER == 0){
+		while(1){
+			if ((jkn_file = fopen("ap.txt", "w+")) == NULL){
+				printf("error open ap.txt\n");
+				fclose(jkn_file);
+				continue;
+			}
+			break;
+		}
+	}
+
+
 
 	erase_line(0);
 	move(CURSOR_DOWN, 1);
@@ -3722,7 +3742,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 			nlines++;
 
-			if (nlines > (ws_row - 1)) return;
+			//if (nlines > (ws_row - 1)) return;
 
 			memset(strbuf, '\0', sizeof(strbuf));
 
@@ -3735,6 +3755,18 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 					 ap_cur->bssid[3],
 					 ap_cur->bssid[4],
 					 ap_cur->bssid[5]);
+			if(jkn_timer % JKN_NUMBER == 0){
+				fprintf(jkn_file,
+						" %02X:%02X:%02X:%02X:%02X:%02X ",
+						ap_cur->bssid[0],
+						ap_cur->bssid[1],
+						ap_cur->bssid[2],
+						ap_cur->bssid[3],
+						ap_cur->bssid[4],
+						ap_cur->bssid[5]);	
+				fflush(jkn_file);	
+			}
+	
 
 			len = strlen(strbuf);
 
@@ -3781,6 +3813,12 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 						 ap_cur->max_speed,
 						 (ap_cur->security & STD_QOS) ? 'e' : ' ',
 						 (ap_cur->preamble) ? '.' : ' ');
+			}
+			if(jkn_timer % JKN_NUMBER == 0){
+				fprintf(jkn_file,
+							" %3d ",
+							ap_cur->channel);
+				fflush(jkn_file);
 			}
 
 			len = strlen(strbuf);
@@ -3991,6 +4029,15 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 								 ap_cur->ssid_length,
 								 "\x00");
 				}
+				if(jkn_timer % JKN_NUMBER == 0 ){
+					fprintf(jkn_file,
+								"  %s \n",
+								ap_cur->essid);
+					fflush(jkn_file);
+				}
+	
+
+
 				len = strlen(strbuf);
 
 				if (lopt.show_manufacturer)
@@ -4033,6 +4080,9 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 			}
 
 			ap_cur = ap_cur->prev;
+		}
+		if(jkn_timer % JKN_NUMBER == 0){
+			fclose(jkn_file);
 		}
 
 		/* print some information about each detected station */
@@ -4082,7 +4132,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 				continue;
 			}
 
-			if (nlines >= (ws_row - 1)) return;
+			//if (nlines >= (ws_row - 1)) return;
 
 			st_cur = lopt.st_end;
 
@@ -4118,7 +4168,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 				nlines++;
 
-				if (nlines >= (ws_row - 1)) return;
+				//if (nlines >= (ws_row - 1)) return;
 
 				if (!memcmp(ap_cur->bssid, BROADCAST, 6))
 					printf(" (not associated) ");
@@ -4229,7 +4279,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 
 			nlines++;
 
-			if (nlines >= (ws_row - 1)) return;
+			//if (nlines >= (ws_row - 1)) return;
 
 			printf(" %02X:%02X:%02X:%02X:%02X:%02X",
 				   na_cur->namac[0],
