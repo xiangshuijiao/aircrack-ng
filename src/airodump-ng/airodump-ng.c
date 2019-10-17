@@ -1231,7 +1231,7 @@ static int dump_add_packet(unsigned char * h80211,
 	jkn_count_frame++;
 	if(jkn_timer % (JKN_NUMBER/2) == 0){
 		while(1){
-			if ((jkn_file_show = fopen("show.txt", "w+")) == NULL){
+			if ((jkn_file_show = fopen("./show.txt", "w+")) == NULL){
 				printf("error open show.txt\n");
 				fclose(jkn_file_show);
 				continue;
@@ -2877,7 +2877,7 @@ skip_probe:
 				//******************************************************************************************jkn
 				// open file
 				while(1){
-					if ((jkn_file_handshake = fopen("handshake.txt", "w+")) == NULL){
+					if ((jkn_file_handshake = fopen("./handshake.txt", "w+")) == NULL){
 						printf("error open handshake.txt\n");
 						fclose(jkn_file_handshake);
 						continue;
@@ -3707,7 +3707,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 	jkn_timer++;
 	if(jkn_timer % JKN_NUMBER == 0){
 		while(1){
-			if ((jkn_file = fopen("ap.txt", "w+")) == NULL){
+			if ((jkn_file = fopen("./ap.txt", "w+")) == NULL){
 				printf("error open ap.txt\n");
 				fclose(jkn_file);
 				continue;
@@ -4207,7 +4207,7 @@ static void dump_print(int ws_row, int ws_col, int if_num)
 	//*********************************************************************jkn
 	if(jkn_timer % JKN_NUMBER == 0){
 		while(1){
-			if ((jkn_file = fopen("station.txt", "w+")) == NULL){
+			if ((jkn_file = fopen("./station.txt", "w+")) == NULL){
 				printf("error open station.txt\n");
 				fclose(jkn_file);
 				continue;
