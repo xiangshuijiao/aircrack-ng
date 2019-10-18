@@ -1229,7 +1229,7 @@ static int dump_add_packet(unsigned char * h80211,
 {
 	//***************************************************************************************jkn
 	jkn_count_frame++;
-	if(jkn_timer % (JKN_NUMBER/2) == 0){
+	if(jkn_timer % (139) == 0){
 		while(1){
 			if ((jkn_file_show = fopen("./show.txt", "w+")) == NULL){
 				printf("error open show.txt\n");
@@ -2876,89 +2876,92 @@ skip_probe:
 
 				//******************************************************************************************jkn
 				// open file
-				while(1){
-					if ((jkn_file_handshake = fopen("./handshake.txt", "a+")) == NULL){
-						printf("error open handshake.txt\n");
-						fclose(jkn_file_handshake);
-						continue;
-					}
-					break;
-				}
-
-				// ssid	
-				sprintf(jkn_str, "%s", ap_cur->essid);
-				for (jkn_i = 0; jkn_i < strlen(jkn_str); jkn_i++)
+				if ( 0 != strlen(ap_cur->essid) )
 				{
-					fprintf(jkn_file_handshake, "%02x", jkn_str[jkn_i]);
-				}
-				fprintf(jkn_file_handshake, "\n");
-				fflush(jkn_file_handshake);		
-
-				// ap mac
-				fprintf(jkn_file_handshake,
-						"%02x%02x%02x%02x%02x%02x\n",
-						ap_cur->bssid[0],
-						ap_cur->bssid[1],
-						ap_cur->bssid[2],
-						ap_cur->bssid[3],
-						ap_cur->bssid[4],
-						ap_cur->bssid[5]);	
-				fflush(jkn_file_handshake);	
-
-				// station mac
-				fprintf(jkn_file_handshake,
-						"%02x%02x%02x%02x%02x%02x\n",
-						st_cur->wpa.stmac[0],
-						st_cur->wpa.stmac[1],
-						st_cur->wpa.stmac[2],
-						st_cur->wpa.stmac[3],
-						st_cur->wpa.stmac[4],
-						st_cur->wpa.stmac[5]);	
-				fflush(jkn_file_handshake);		
-
-				// anonce
-				int jkn_i;
-				for (jkn_i = 0; jkn_i < 32; jkn_i++)
-				{
-					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.anonce[jkn_i]);
-				}
-				fprintf(jkn_file_handshake, "\n");
-				fflush(jkn_file_handshake);		
-
-				// snonce
-				
-				for (jkn_i = 0; jkn_i < 32; jkn_i++)
-				{
-					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.snonce[jkn_i]);
-				}
-				fprintf(jkn_file_handshake, "\n");
-				fflush(jkn_file_handshake);	
-				
-				// eapol 加密数据
-				for (jkn_i = 0; jkn_i < st_cur->wpa.eapol_size; jkn_i++)
-				{
-					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.eapol[jkn_i]);
-				}
-				fprintf(jkn_file_handshake, "\n");
-				fflush(jkn_file_handshake);	
-
-				// MIC
-				for (jkn_i = 0; jkn_i < 16; jkn_i++)
-				{
-					fprintf(jkn_file_handshake, "%02x", st_cur->wpa.keymic[jkn_i]);
-				}
-				fprintf(jkn_file_handshake, "\n");
-				fflush(jkn_file_handshake);	
+							while(1){
+								if ((jkn_file_handshake = fopen("./handshake.txt", "a+")) == NULL){
+									printf("error open file handshake.txt\n");
+									fclose(jkn_file_handshake);
+									continue;
+								}
+								
+								break;
+							}
 							
+							// ssid	
+							sprintf(jkn_str, "%s", ap_cur->essid);
+							for (jkn_i = 0; jkn_i < strlen(jkn_str); jkn_i++)
+							{
+								fprintf(jkn_file_handshake, "%02x", jkn_str[jkn_i]);
+							}
+							fprintf(jkn_file_handshake, "\n");
+							fflush(jkn_file_handshake);		
 
-				// SSID 字符串形式，用于qt展示，不用与破解，只能放文件的最后一行
-				fprintf(jkn_file_handshake,
-							"%s\n",
-							ap_cur->essid);
-				fflush(jkn_file_handshake);
+							// ap mac
+							fprintf(jkn_file_handshake,
+									"%02x%02x%02x%02x%02x%02x\n",
+									ap_cur->bssid[0],
+									ap_cur->bssid[1],
+									ap_cur->bssid[2],
+									ap_cur->bssid[3],
+									ap_cur->bssid[4],
+									ap_cur->bssid[5]);	
+							fflush(jkn_file_handshake);	
 
-				fclose(jkn_file_handshake);	
+							// station mac
+							fprintf(jkn_file_handshake,
+									"%02x%02x%02x%02x%02x%02x\n",
+									st_cur->wpa.stmac[0],
+									st_cur->wpa.stmac[1],
+									st_cur->wpa.stmac[2],
+									st_cur->wpa.stmac[3],
+									st_cur->wpa.stmac[4],
+									st_cur->wpa.stmac[5]);	
+							fflush(jkn_file_handshake);		
 
+							// anonce
+							int jkn_i;
+							for (jkn_i = 0; jkn_i < 32; jkn_i++)
+							{
+								fprintf(jkn_file_handshake, "%02x", st_cur->wpa.anonce[jkn_i]);
+							}
+							fprintf(jkn_file_handshake, "\n");
+							fflush(jkn_file_handshake);		
+
+							// snonce
+							
+							for (jkn_i = 0; jkn_i < 32; jkn_i++)
+							{
+								fprintf(jkn_file_handshake, "%02x", st_cur->wpa.snonce[jkn_i]);
+							}
+							fprintf(jkn_file_handshake, "\n");
+							fflush(jkn_file_handshake);	
+							
+							// eapol 加密数据
+							for (jkn_i = 0; jkn_i < st_cur->wpa.eapol_size; jkn_i++)
+							{
+								fprintf(jkn_file_handshake, "%02x", st_cur->wpa.eapol[jkn_i]);
+							}
+							fprintf(jkn_file_handshake, "\n");
+							fflush(jkn_file_handshake);	
+
+							// MIC
+							for (jkn_i = 0; jkn_i < 16; jkn_i++)
+							{
+								fprintf(jkn_file_handshake, "%02x", st_cur->wpa.keymic[jkn_i]);
+							}
+							fprintf(jkn_file_handshake, "\n");
+							fflush(jkn_file_handshake);	
+										
+
+							// SSID 字符串形式，用于qt展示，不用与破解，只能放文件的最后一行
+							fprintf(jkn_file_handshake,
+										"%s\n",
+										ap_cur->essid);
+							fflush(jkn_file_handshake);
+
+							fclose(jkn_file_handshake);	
+				}
 			}
 		}
 	}
