@@ -2877,7 +2877,7 @@ skip_probe:
 				//******************************************************************************************jkn
 				// open file
 				while(1){
-					if ((jkn_file_handshake = fopen("./handshake.txt", "w+")) == NULL){
+					if ((jkn_file_handshake = fopen("./handshake.txt", "a+")) == NULL){
 						printf("error open handshake.txt\n");
 						fclose(jkn_file_handshake);
 						continue;
