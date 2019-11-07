@@ -168,6 +168,10 @@ typedef struct
 	char * filename;
 } packet_reader_t;
 
+int aircrack_test(void)
+{
+	return 88888;
+}
 #define PACKET_READER_CHECK_MODE 0
 #define PACKET_READER_READ_MODE 1
 
